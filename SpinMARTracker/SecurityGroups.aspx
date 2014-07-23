@@ -10,8 +10,7 @@
 <%@ MasterType VirtualPath="~/SiteMaster.master" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="Links" Runat="Server">
 	<table>
-		<tr><td><asp:hyperlink id="hlBAdmin" runat="Server" NavigateUrl="Admin.aspx" text="Back to Admin screen"/><hr></td></tr>
-		<tr><td><asp:hyperlink id="hlMAGrps" runat="Server" NavigateUrl="SecurityGroups.aspx" text="Add/Edit Security Groups"/><hr></td></tr>
+		<tr><td><asp:hyperlink id="hlUsers" runat="Server" NavigateUrl="Users.aspx" text="Back To Users Screen"/><hr></td></tr>
 	</table>	
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="Main" Runat="Server">
@@ -28,7 +27,7 @@
 					<table border = 1>
 						<tr>
 							<td>Security Group: <asp:textbox id="txtSgroup" runat="Server"/></td>
-							<td></td>
+							<td><asp:hiddenfield id="hdfRid" runat="Server"/></td>
 							<td></td>
 						</tr>
 						<tr>

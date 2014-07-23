@@ -39,6 +39,7 @@ namespace SpinMARTracker
 		protected Button btnCancel;
 		protected TextBox txtSgroup;
 		protected Panel PanAddUpdate;
+		protected HiddenField hdfRid;
 			
 		#endregion
 		//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -61,9 +62,15 @@ namespace SpinMARTracker
 			if(!IsPostBack)
 			{
 			}
+			SecurityChecks();
 			dgSgrpGrid.DataSource = Utility.GetSQLDataView("Select * from SecurityGroups");
 			dgSgrpGrid.DataBind();
 			//------------------------------------------------------------------
+		}
+		protected void SecurityChecks(){
+			if(Session["ManageGrps"].ToString() != "True"){
+				Response.Redirect("Default.aspx");
+			}
 		}
 		#endregion
 		//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -84,6 +91,7 @@ namespace SpinMARTracker
 			this.Init   += new System.EventHandler(PageInit);
 			this.Unload += new System.EventHandler(PageExit);
 			this.btnSaveUpdate.Click += new System.EventHandler(AddUpdateGroup);
+			this.btnCancel.Click += new EventHandler(ClearFields);
 			//------------------------------------------------------------------
 			//------------------------------------------------------------------
 		}
@@ -93,6 +101,7 @@ namespace SpinMARTracker
 		protected void AddUpdateGroup(object sender, EventArgs e){
 			SqlConnection sqlconn = new SqlConnection(System.Configuration.ConfigurationSettings.AppSettings["ConnectionString"]);
 			SqlCommand addcmd = new SqlCommand("CreateSGroup", sqlconn);
+			SqlCommand upcmd = new SqlCommand("UpdateSGroup",sqlconn);
 			
 			if (btnSaveUpdate.Text == "Add Group"){
 				addcmd.CommandType = CommandType.StoredProcedure;
@@ -120,13 +129,51 @@ namespace SpinMARTracker
 				addcmd = null;
 				
 				sqlconn.Close();
-				
-				dgSgrpGrid.DataSource = Utility.GetSQLDataView("Select * from SecurityGroups");
-				dgSgrpGrid.DataBind();
 			}
-
+			else{
+				upcmd.CommandType = CommandType.StoredProcedure;
+				upcmd.Parameters.Add("@sgid",SqlDbType.Int);
+				upcmd.Parameters.Add("@name",SqlDbType.VarChar);
+				upcmd.Parameters.Add("@canDel",SqlDbType.Bit);
+				upcmd.Parameters.Add("@canMer",SqlDbType.Bit);
+				upcmd.Parameters.Add("@EditRel",SqlDbType.Bit);
+				upcmd.Parameters.Add("@MerD",SqlDbType.Bit);
+				upcmd.Parameters.Add("@CanEx",SqlDbType.Bit);
+				upcmd.Parameters.Add("@ManU",SqlDbType.Bit);
+				upcmd.Parameters.Add("@ManG",SqlDbType.Bit);
+				upcmd.Parameters["@sgid"].Value = hdfRid.Value;
+				upcmd.Parameters["@name"].Value = txtSgroup.Text;
+				upcmd.Parameters["@canDel"].Value = chkCanDel.Checked;
+				upcmd.Parameters["@canMer"].Value = chkCanMer.Checked;
+				upcmd.Parameters["@EditRel"].Value = chkEditRel.Checked;
+				upcmd.Parameters["@MerD"].Value = chkDiffMer.Checked;
+				upcmd.Parameters["@CanEx"].Value = chkExpMO.Checked;
+				upcmd.Parameters["@ManU"].Value = chkManU.Checked;
+				upcmd.Parameters["@ManG"].Value = chkManGrp.Checked;
+				
+				sqlconn.Open();
+				
+				upcmd.ExecuteNonQuery();
+				
+				upcmd = null;
+				
+				sqlconn.Close();
+			}
+			dgSgrpGrid.DataSource = Utility.GetSQLDataView("Select * from SecurityGroups");
+			dgSgrpGrid.DataBind();
+			ClearFrm();
 		}
 		protected void EditGroup(object sender, DataGridCommandEventArgs e){
+			hdfRid.Value = e.Item.Cells[0].Text.ToString();
+			txtSgroup.Text = e.Item.Cells[1].Text.ToString();
+			chkCanDel.Checked = Convert.ToBoolean(e.Item.Cells[2].Text);
+			chkCanMer.Checked = Convert.ToBoolean(e.Item.Cells[3].Text);
+			chkDiffMer.Checked = Convert.ToBoolean(e.Item.Cells[4].Text);
+			chkEditRel.Checked = Convert.ToBoolean(e.Item.Cells[5].Text);
+			chkExpMO.Checked = Convert.ToBoolean(e.Item.Cells[6].Text);
+			chkManU.Checked = Convert.ToBoolean(e.Item.Cells[7].Text);
+			chkManGrp.Checked = Convert.ToBoolean(e.Item.Cells[8].Text);
+			btnSaveUpdate.Text = "Update Group";
 			
 		}
 		protected void DeleteGroup(object sender, DataGridCommandEventArgs e){
@@ -147,6 +194,21 @@ namespace SpinMARTracker
 			
 			dgSgrpGrid.DataSource = Utility.GetSQLDataView("Select * from SecurityGroups");
 			dgSgrpGrid.DataBind();
+		}
+		protected void ClearFrm(){
+			txtSgroup.Text = "";
+			chkCanDel.Checked = false;
+			chkCanMer.Checked = false;
+			chkDiffMer.Checked = false;
+			chkEditRel.Checked = false;
+			chkExpMO.Checked = false;
+			chkManU.Checked = false;
+			chkManGrp.Checked = false;
+			hdfRid.Value = "";
+			btnSaveUpdate.Text = "Add Group";
+		}
+		protected void ClearFields(object sender, EventArgs e){
+			ClearFrm();
 		}
 		#endregion
 	}
